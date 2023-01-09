@@ -363,6 +363,8 @@ class User:
 
         """
 
+        
+        self.account.set_account_fine()
         print("Paying fine...")
         if (self.account.acc_fine == 0):
             print("You have no fine to pay")

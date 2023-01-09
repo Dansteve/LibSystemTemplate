@@ -22,7 +22,8 @@ class TestStaff:
     @pytest.mark.parametrize("f_name, l_name, department, account", [
         ("John", "Doe", "Computer Science", account),
         ("Jane", "Adekanbi", "Computer Science", account),
-        ("Dansteve", "Ola", "Computer Science", account),])
+        ("Dansteve", "Ola", "Computer Science", account)
+        ])
     def test_staff(self, f_name, l_name, department, account):
         newStaff = Staff(f_name, l_name, department, account)
         assert newStaff.f_name == f_name

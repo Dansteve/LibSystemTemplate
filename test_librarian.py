@@ -31,9 +31,3 @@ class TestLiberian:
         assert newLiberian.l_name == l_name
         assert newLiberian.department == department
         assert newLiberian.account == account
-
-    # liberian.check_lost_books()
-    # liberian.check_borrowed_books()
-    # liberian.check_reserved_books()
-    # liberian.check_overdue_books()
-    # liberian.check_fines()

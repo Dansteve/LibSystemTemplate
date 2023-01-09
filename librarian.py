@@ -243,12 +243,12 @@ q.  Logout
                             )
                             title = User.ellipsisWord(currentBook.title)
                             overdueDays = account.get_days_overlap(
-                                book['date_borrowed'])
+                                book['due_date'])
                             if overdueDays > 0:
                                 fine = account.get_late_fine(
-                                    book['date_borrowed'])
+                                    book['due_date'])
                                 print(f"{index}".ljust(10), f"{currentBook.isbn}".ljust(20), f"{title}".ljust(30),
-                                      f"{user}".ljust(15),  f"{userName}".ljust(15), f"{book['date_borrowed']}".ljust(22), f"{overdueDays} days".ljust(15), f"£ {fine}".ljust(10))
+                                      f"{user}".ljust(15),  f"{userName}".ljust(15), f"{book['due_date']}".ljust(22), f"{overdueDays} days".ljust(15), f"£ {fine}".ljust(10))
                                 index += 1
 
     def check_fines(self):
