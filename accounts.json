@@ -5,20 +5,7 @@
             "password": "abc",
             "f_name": "Stish",
             "l_name": "Student",
-            "l_books_borrowed": [
-                {
-                    "isbn": "439682584",
-                    "date_borrowed": "09/01/2023 00:27:15",
-                    "due_date": "06/01/2023 00:27:15",
-                    "has_fine_paid": false
-                },
-                {
-                    "isbn": "517149257",
-                    "date_borrowed": "09/01/2023 00:27:26",
-                    "due_date": "07/01/2023 00:27:26",
-                    "has_fine_paid": false
-                }
-            ],
+            "l_books_borrowed": [],
             "l_books_reserved": [],
             "l_return_books": [],
             "l_lost_books": [],
