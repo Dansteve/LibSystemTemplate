@@ -39,31 +39,33 @@ Choose an option:
 3.  Check reserved books
 4.  Check borrowed books
 5.  Check overdue books
-6.  Check fines
-7.  View account details
-8.  Add a book
-9.  Remove a book
-10. Update a book
-11. Add a user
-12. Remove a user
-13. Update a user
+6.  Check returned books
+7.  Check fines
+8.  View account details
+9.  Add a book
+10. Remove a book
+11. Update a book
+12. Add a user
+13. Remove a user
+14. Update a user
 q.  Logout
 """)
-            choice = input("\nSelect Option (1-13|q): ")
+            choice = input("\nSelect Option (1-14|q): ")
             switcher = {
                 "1": self.search_book,
                 "2": self.check_lost_books,
                 "3": self.check_reserved_books,
                 "4": self.check_borrowed_books,
                 "5": self.check_overdue_books,
-                "6": self.check_fines,
-                "7": self.view_account_details,
-                "8": self.add_book,
-                "9": self.remove_book,
-                "10": self.update_book,
-                "11": self.add_user,
-                "12": self.remove_user,
-                "13": self.update_user,
+                "6": self.check_returned_books,
+                "7": self.check_fines,
+                "8": self.view_account_details,
+                "9": self.add_book,
+                "10": self.remove_book,
+                "11": self.update_book,
+                "12": self.add_user,
+                "13": self.remove_user,
+                "14": self.update_user,
                 "q": self.logout
             }.get(choice, "Invalid choice")
 
@@ -95,7 +97,7 @@ q.  Logout
         print("Checking lost books...")
         print("Lost books:")
         print(f"S/N".ljust(10), f"ISBN".ljust(20), f"Title".ljust(30),
-              f"User Id".ljust(15), f"User Name".ljust(20), f"Lost Date ".ljust(20))
+              f"User Id".ljust(15), f"User Name".ljust(20), f"Lost Date ".ljust(20), f"has paid".ljust(10), f"Date paid".ljust(20))
 
         with open("accounts.json") as fd:
             acc = json.load(fd)
@@ -113,7 +115,7 @@ q.  Logout
                                 acc[userType][user]["f_name"] + " " + acc[userType][user]["l_name"], 18)
                             title = User.ellipsisWord(currentBook.title)
                             print(f"{index}".ljust(10), f"{currentBook.isbn}".ljust(20), f"{title}".ljust(30),
-                                  f"{user}".ljust(15),  f"{userName}".ljust(20), f"{book['date_lost']}".ljust(20))
+                                  f"{user}".ljust(15),  f"{userName}".ljust(20), f"{book['date_lost']}".ljust(20), f"{book['has_paid']}".ljust(10), f"{book['date_paid']}".ljust(20))
                             index += 1
 
     def check_reserved_books(self):
@@ -192,7 +194,7 @@ q.  Logout
             # loop through the accounts student , staff and librarian
             for userType in userTypes:
                 for user in acc[userType]:
-                    for book in acc[userType][user]["l_books_returned"]:
+                    for book in acc[userType][user]["l_return_books"]:
                         getBook = LibraryDatabase.getBook(book['isbn'])[0]
                         currentBook = Book(*getBook)
                         if currentBook:

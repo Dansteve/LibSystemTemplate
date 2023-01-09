@@ -15,7 +15,7 @@ class Student(User):
 
     # USER CONSTANTS
     __MAX_BORROW_LIMIT = 5
-    __MAX_LOAN_PERIOD = 14
+    __MAX_LOAN_PERIOD = 7
     __MAX_RESERVE_LIMIT = 3
     __MAX_RESERVATION_PERIOD = 21
 
@@ -42,26 +42,30 @@ Choose an option:
 2.  Borrow a book
 3.  Reserve a book
 4.  Return a book
-5.  View borrowed books
-6.  View reserved books
-7.  Cancel a reservation
-8.  Mark a book lost
-9.  View Lost books
-10. View account details
+5.  Renew a borrowed book
+6.  View borrowed books
+7.  View reserved books
+8.  Cancel a reservation
+9.  Mark a book lost
+10. View Lost books
+11. Pay fine
+12. View account details
 q.  Logout
 """)
-            choice = input("\nSelect Option (1-9|q): ")
+            choice = input("\nSelect Option (1-12|q): ")
             switcher = {
                 "1": self.search_book,
                 "2": self.borrow_book,
                 "3": self.reserve_book,
                 "4": self.return_book,
-                "5": self.view_borrowed_books,
-                "6": self.view_reserved_books,
-                "7": self.cancel_reservation,
-                "8": self.make_a_book_as_lost,
-                "9": self.view_lost_books,
-                "10": self.view_account_details,
+                "5": self.renew_borrowed_book,
+                "6": self.view_borrowed_books,
+                "7": self.view_reserved_books,
+                "8": self.cancel_reservation,
+                "9": self.make_a_book_as_lost,
+                "10": self.view_lost_books,
+                "11": self.pay_fine,
+                "12": self.view_account_details,
                 "q": self.logout
             }.get(choice, "Invalid choice")
 

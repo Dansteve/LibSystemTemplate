@@ -279,9 +279,9 @@ class Account:
         """
         
         for b in self.l_books_borrowed:
-            if (self.get_days_overlap(b['date_borrowed']) > 0):
+            if (self.get_days_overlap(b['due_date']) > 0):
                 print(
-                    f"""Book: {b['isbn']} is late by {self.get_days_overlap(b['date_borrowed'])} days""")
+                    f"""Book: {b['isbn']} is late by {self.get_days_overlap(b['due_date'])} days""")
 
     def set_account_fine(self):
         """
@@ -312,9 +312,9 @@ class Account:
         total_fine = 0
 
         for b in self.l_books_borrowed:
-            # check if book has fine and if it is paid
-            
-            total_fine += self.get_late_fine(b['date_borrowed'])
+            # check if the book fine is paid if not calculate the fine
+            if b['has_fine_paid'] == False:
+                total_fine += self.get_late_fine(b['due_date'])
         return total_fine
 
     def get_total_lost_fees(self):
@@ -330,9 +330,8 @@ class Account:
         """
 
         total_fine = 0
-        for _ in self.l_lost_books:
-            # check if hasPaidFine is true or false
-            if (self.l_lost_books[_]['has_paid'] == False):
+        for b in self.l_lost_books:
+            if (b['has_paid'] == False):
                 total_fine += self.__FINE_PER_BOOK
         return total_fine
 
@@ -341,7 +340,7 @@ class Account:
         Calculate the late fees for the current account.
 
         Parameters:
-            date (str): The date the book was borrowed.
+            date (str): The date the book is due.
 
         Returns:
             The late fees for the current account.
@@ -354,7 +353,7 @@ class Account:
         Calculate how many days the books borrowed were late.
 
         Parameters:
-            date (str): The date the book was borrowed.
+            date (str): The date the book is due.
 
         Returns:
             The number of days the books borrowed were late.
@@ -363,10 +362,12 @@ class Account:
 
         date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M:%S")
         date_laps = (datetime.datetime.now() - date).days
-        if date_laps > self.__MAX_LOAN_PERIOD:
-            return date_laps - self.__MAX_LOAN_PERIOD
+        if date_laps > 0:
+            return date_laps
         else:
             return 0
+
+
 
     def __repr__(self):
         """

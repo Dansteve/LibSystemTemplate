@@ -18,7 +18,8 @@ class User:
 
     # USER CONSTANTS
     __MAX_BORROW_LIMIT = 5
-    __MAX_LOAN_PERIOD = 14
+    __MAX_LOAN_PERIOD = 7
+    __MAX_EXTENSION_PERIOD = 7
     __MAX_RESERVE_LIMIT = 3
     __MAX_RESERVATION_PERIOD = 21
 
@@ -101,8 +102,8 @@ class User:
                             print("You have already borrowed this book")
                             return
 
-                        self.account.l_books_borrowed.append(
-                            {"isbn": book.isbn, "date_borrowed": self.get_date()})
+                        self.account.l_books_borrowed.append({"isbn": book.isbn, "date_borrowed": self.get_date(
+                        ), "due_date": self.get_date_plus_days(self.__MAX_LOAN_PERIOD), "has_fine_paid": False})
                         book.available -= 1
                         LibraryDatabase.updateBook(book)
 
@@ -151,7 +152,9 @@ class User:
                         20), f"{b['date_reserved']}".ljust(20))
 
             choice = int(input("Enter S/N of the book to cancel reservation: "))
-            book = Book(*LibraryDatabase.getBook(self.account.l_books_reserved[choice-1]['isbn'])[0])
+            returnBook = LibraryDatabase.getBook(
+                self.account.l_books_reserved[choice-1]['isbn'])[0]
+            book = Book(*returnBook)
             self.account.l_books_reserved = [b for b in self.account.l_books_reserved if b['isbn'] != book.isbn]
             self.account.update_account_json()
             print("Reservation cancelled successfully")
@@ -176,7 +179,7 @@ class User:
             getBook = LibraryDatabase.getBook(b['isbn'])[0]
             book = Book(*getBook)
             print(f"{sn}".ljust(10), f"{self.ellipsisWord(book.title)}".ljust(30), f"{self.ellipsisWord(book.authors)}".ljust(30), f"{book.isbn}".ljust(
-                20), f"{b['date_borrowed']}".ljust(20), f"{self.get_due_date(b['date_borrowed'])}".ljust(20))
+                20), f"{b['date_borrowed']}".ljust(20), f"{b['due_date']}".ljust(20))
 
     def reserve_book(self):
         """ 
@@ -305,12 +308,12 @@ class User:
         self.view_borrowed_books()
         try:
             choice = int(input("Enter S/N of the book to make as lost: "))
-            book = Book(
-                *LibraryDatabase.getBook(self.account.l_books_borrowed[choice-1]['isbn'])[0])
+            returnBook = LibraryDatabase.getBook(self.account.l_books_borrowed[choice-1]['isbn'])[0]
+            book = Book(*returnBook)
             self.account.l_books_borrowed.pop(choice-1)
-
             # update history of lost books and date lost
-            self.account.l_lost_books.append({"isbn": book.isbn, "date_lost": self.get_date(), 'has_paid': False})
+            self.account.l_lost_books.append(
+                {"isbn": book.isbn, "date_lost": self.get_date(), 'has_paid': False, 'date_paid': None})
             self.account.update_account_json()
             print("Book marked as lost successfully")
 
@@ -339,8 +342,7 @@ class User:
             book = Book(*getBook)
             print(f"{sn}".ljust(10), f"{self.ellipsisWord(book.title)}".ljust(30), f"{self.ellipsisWord(book.authors)}".ljust(30), f"{book.isbn}".ljust(
                 20), f"{b['date_lost']}".ljust(20))
-
-                
+             
     def view_account_details(self):
         """ 
         View account details.\n
@@ -361,8 +363,75 @@ class User:
 
         """
 
-        self.acc_fine = 0
-        self.account.update_account_json()
+        print("Paying fine...")
+        if (self.account.acc_fine == 0):
+            print("You have no fine to pay")
+            return
+        
+        print("Your current fine is: Pounds(£)", f"{self.account.acc_fine:.2f}")
+        try:
+            amount = float(input("Enter amount to pay: "))
+            if(amount > self.account.acc_fine):
+                print("Amount entered is greater than the current fine")
+                return
+            
+            if amount < 0:
+                print("Amount entered is invalid")
+                return
+
+            if amount < self.account.acc_fine:
+                print("Amount entered is less than the current fine \n Kindly pay the full amount")
+                return
+
+            self.account.acc_fine = 0
+
+            # update l_lost_books and add has_paid and date_paid
+            for book in self.account.l_lost_books:
+                if book['has_paid'] == False:
+                    book['has_paid'] = True
+                    book['date_paid'] = self.get_date()
+                    break
+            
+            # check if books in l_books_borrowed is due and if yes update paid fine to true
+            for book in self.account.l_books_borrowed:
+                if book['due_date'] < self.get_date():
+                    book['paid_fine'] = True
+
+            self.account.update_account_json()
+            print("Fine paid successfully")
+
+        except ValueError:
+            print("Invalid amount entered ->", "Amount must be a number")
+
+    def renew_borrowed_book(self):
+        """
+        Renew borrowed book.\n
+        The user can renew a book they have borrowed.\n
+        If the user has not borrowed any book, they will be notified.\n
+        """
+
+        print("Renewing a borrowed book...")
+        # show borrowed books and ask for the book to renew
+        self.view_borrowed_books()
+        try:
+            choice = int(input("Enter S/N of the book to renew: "))
+            returnBook = LibraryDatabase.getBook(self.account.l_books_borrowed[choice-1]['isbn'])[0]
+            book = Book(*returnBook)
+
+            # update due date of borrowed book with current date + 7 days and add renewed to true
+            self.account.l_books_borrowed[choice-1]['due_date'] = self.extend_due_date()
+            self.account.l_books_borrowed[choice-1]['renewed'] = True
+            self.account.update_account_json()
+            print("Book renewed successfully")
+
+        except ValueError:
+            print("Invalid choice ->", "S/N must be a number")
+                    
+        except IndexError:
+            print("Invalid choice ->", "Kindly select a S/N from the list of books borrowed")
+
+        except Exception as e:
+            print("Error: ", e)
 
     def logout(self):
         """ 
@@ -414,8 +483,22 @@ class User:
 
         """
         return self.get_date_after(date, self.__MAX_RESERVATION_PERIOD);
-    
-    def extend_due_date(self, date):
+
+    def get_date_plus_days(self, days):
+        """
+        Calculate the date after the number of days.
+
+        Parameters:
+            days (int): The number of days.
+
+        Returns:
+            The date after the number of days.
+
+        """
+
+        return (datetime.datetime.now() + datetime.timedelta(days=days)).strftime("%d/%m/%Y %H:%M:%S")
+
+    def extend_due_date(self):
         """ 
         Extend due date.
         
@@ -429,10 +512,9 @@ class User:
         str
             Extended due date.
 
-
         """ 
 
-        return self.get_date_after(date, 2)
+        return self.get_date_plus_days(self.__MAX_EXTENSION_PERIOD)
 
     def extend_reservation(self, date):
         """ 
